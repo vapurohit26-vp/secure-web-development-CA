@@ -1,6 +1,5 @@
     <?php 
-
-    // Cheacking if it is changing in git
+    
 require 'auth_check.php';
 require 'db_connection.php';
 

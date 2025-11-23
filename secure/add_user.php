@@ -1,8 +1,8 @@
-<?php
+    <?php
 require 'auth_check.php';
 require 'db_connection.php';
 
-
+// This is
 if ($_SESSION['user_role'] !== 'admin') {
     header("Location: dashboard.php");
     exit;

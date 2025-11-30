@@ -1,7 +1,8 @@
 <?php
 require 'auth_check.php';
 require 'db_connection.php';
-
+require 'security_log.php';
+require 'csrf.php';
 
 if ($_SESSION['user_role'] !== 'admin') {
     header("Location: dashboard.php");
@@ -11,47 +12,61 @@ if ($_SESSION['user_role'] !== 'admin') {
 $message = "";
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $full_name = trim($_POST['full_name'] ?? '');
-    $username = trim($_POST['username'] ?? '');
+    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
+        security_log("CSRF FAILURE on add_user by user_id={$_SESSION['user_id']}");
+        http_response_code(400);
+        exit('Invalid request.');
+    }
+    $full_name    = trim($_POST['full_name'] ?? '');
+    $username     = trim($_POST['username'] ?? '');
     $raw_password = trim($_POST['password'] ?? '');
-$raw_password = trim($_POST['password'] ?? '');
-$role = $_POST['role'] ?? 'employee';
-
-$password_ok = true;
-$password_error = '';
-
-if (strlen($raw_password) < 8 ||
-    !preg_match('/[a-z]/', $raw_password) ||
-    !preg_match('/[A-Z]/', $raw_password) ||
-    !preg_match('/\d/', $raw_password) ||
-    !preg_match('/[^A-Za-z0-9]/', $raw_password)) {
-    $password_ok = false;
-    $password_error = "Password must be at least 8 characters and include upper, lower, number, and special character.";
-}
+    $role         = $_POST['role'] ?? 'employee';
 
 
-if ($full_name && $username && $raw_password) {
-
-    if (!$password_ok) {
-        $message = $password_error;
-    } else {
-        $password = password_hash($raw_password, PASSWORD_DEFAULT);
-
-        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-        $stmt->execute([$username]);
-        if ($stmt->rowCount() > 0) {
-            $message = "Username already taken.";
-        } else {
-            $stmt = $conn->prepare("INSERT INTO users (full_name, username, password, role) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$full_name, $username, $password, $role]);
-            $message = "User created successfully.";
-        }
+    $allowed_roles = ['employee', 'admin'];
+    if (!in_array($role, $allowed_roles, true)) {
+        $role = 'employee';
     }
 
-} else {
-    $message = "All fields are required.";
-}
+    $password_ok    = true;
+    $password_error = '';
 
+    if (
+        strlen($raw_password) < 8 ||
+        !preg_match('/[a-z]/', $raw_password) ||
+        !preg_match('/[A-Z]/', $raw_password) ||
+        !preg_match('/\d/', $raw_password) ||
+        !preg_match('/[^A-Za-z0-9]/', $raw_password)
+    ) {
+        $password_ok    = false;
+        $password_error = "Password must be at least 8 characters and include upper, lower, number, and special character.";
+    }
+
+    if ($full_name && $username && $raw_password) {
+        if (!$password_ok) {
+            $message = $password_error;
+        } else {
+            $password = password_hash($raw_password, PASSWORD_DEFAULT);
+
+
+            $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+            $stmt->execute([$username]);
+
+            if ($stmt->rowCount() > 0) {
+                $message = "Username already taken.";
+            } else {
+                $stmt = $conn->prepare("INSERT INTO users (full_name, username, password, role) VALUES (?, ?, ?, ?)");
+                $stmt->execute([$full_name, $username, $password, $role]);
+
+                $newUserId = $conn->lastInsertId();
+                security_log("USER CREATE by user_id={$_SESSION['user_id']}, new_user_id={$newUserId}, username='{$username}', role='{$role}'");
+
+                $message = "User created successfully.";
+            }
+        }
+    } else {
+        $message = "All fields are required.";
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -61,29 +76,15 @@ if ($full_name && $username && $raw_password) {
     <title>Add User - Task Manager</title>
     <style>
         body { margin:0; font-family: Arial, sans-serif; }
-        .content {
-            margin-left:240px;
-            padding:20px;
-        }
-        .form-card {
-            background:#f9f9f9;
-            padding:15px;
-            border-radius:6px;
-            max-width:400px;
-        }
+        .content { margin-left:240px; padding:20px; }
+        .form-card { background:#f9f9f9; padding:15px; border-radius:6px; max-width:400px; }
         .form-group { margin-bottom:10px; }
         label { display:block; margin-bottom:5px; }
         input[type="text"], input[type="password"], select {
-            width:100%;
-            padding:6px;
-            box-sizing:border-box;
+            width:100%; padding:6px; box-sizing:border-box;
         }
         button {
-            padding:8px 12px;
-            border:none;
-            background:#007bff;
-            color:#fff;
-            cursor:pointer;
+            padding:8px 12px; border:none; background:#007bff; color:#fff; cursor:pointer;
         }
         .msg { margin-bottom:10px; color:green; }
         .error { color:red; }
@@ -91,7 +92,6 @@ if ($full_name && $username && $raw_password) {
 </head>
 <body>
 <?php include 'sidebar.php'; ?>
-
 <div class="content">
     <h1>Add User</h1>
     <div class="form-card">
@@ -101,6 +101,7 @@ if ($full_name && $username && $raw_password) {
             </div>
         <?php endif; ?>
         <form method="POST" action="add_user.php">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(get_csrf_token()) ?>">
             <div class="form-group">
                 <label>Full Name</label>
                 <input type="text" name="full_name" required>

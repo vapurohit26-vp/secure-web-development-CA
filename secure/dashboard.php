@@ -1,66 +1,72 @@
 <?php
 require 'auth_check.php';
 require 'db_connection.php';
+require 'security_log.php';
+require 'csrf.php';
+
 $currentUserId = $_SESSION['user_id'];
 $currentRole   = $_SESSION['user_role'] ?? 'employee';
 
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = trim($_POST['title'] ?? '');
+    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
+        security_log("CSRF FAILURE on task POST by user_id={$currentUserId}");
+        http_response_code(400);
+        exit('Invalid request.');
+    }
+    $title       = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $assigned_to = !empty($_POST['assigned_to']) ? (int)$_POST['assigned_to'] : null;
-    $due_date = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
-    $status = $_POST['status'] ?? 'pending';
-    if ($currentRole !== 'admin') {
-    $assigned_to = $currentUserId;
-}
-if (!empty($_POST['task_id'])) {
-    $task_id = (int)$_POST['task_id'];
+    $due_date    = !empty($_POST['due_date']) ? $_POST['due_date'] : null;
+    $status      = $_POST['status'] ?? 'pending';
 
     if ($currentRole !== 'admin') {
-        $check = $conn->prepare("SELECT id FROM tasks WHERE id = ? AND assigned_to = ?");
-        $check->execute([$task_id, $currentUserId]);
-        if ($check->rowCount() === 0) {
-            // Task does not belong to this user
-            http_response_code(403);
-            exit('Unauthorized action.');
-        }
+
+        $assigned_to = $currentUserId;
     }
 
-    // now safe to update
-    $stmt = $conn->prepare(
-        "UPDATE tasks 
-         SET title = ?, description = ?, assigned_to = ?, due_date = ?, status = ?
-         WHERE id = ?"
-    );
-    $stmt->execute([$title, $description, $assigned_to, $due_date, $status, $task_id]);
-}
-
-    
     if (!empty($_POST['task_id'])) {
+
         $task_id = (int)$_POST['task_id'];
+
+        if ($currentRole !== 'admin') {
+            $check = $conn->prepare("SELECT id FROM tasks WHERE id = ? AND assigned_to = ?");
+            $check->execute([$task_id, $currentUserId]);
+            if ($check->rowCount() === 0) {
+                http_response_code(403);
+                exit('Unauthorized action.');
+            }
+        }
+
         $stmt = $conn->prepare(
-            "UPDATE tasks 
-             SET title = ?, description = ?, assigned_to = ?, due_date = ?, status = ?
-             WHERE id = ?"
+            "UPDATE tasks SET title = ?, description = ?, assigned_to = ?, due_date = ?, status = ? WHERE id = ?"
         );
         $stmt->execute([$title, $description, $assigned_to, $due_date, $status, $task_id]);
+
+        security_log("TASK UPDATE by user_id={$currentUserId}, task_id={$task_id}, status='{$status}'");
     } else {
-        
+      
         $stmt = $conn->prepare(
-            "INSERT INTO tasks (title, description, assigned_to, due_date, status) 
-             VALUES (?, ?, ?, ?, ?)"
+            "INSERT INTO tasks (title, description, assigned_to, due_date, status) VALUES (?, ?, ?, ?, ?)"
         );
         $stmt->execute([$title, $description, $assigned_to, $due_date, $status]);
+
+        $newTaskId = $conn->lastInsertId();
+        security_log("TASK CREATE by user_id={$currentUserId}, task_id={$newTaskId}, status='{$status}'");
     }
 
     header("Location: dashboard.php");
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_task'])) {
 
-if (isset($_GET['delete'])) {
-    $task_id = (int)$_GET['delete'];
+    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
+        security_log("CSRF FAILURE on task DELETE by user_id={$currentUserId}");
+        http_response_code(400);
+        exit('Invalid request.');
+    }
+
+    $task_id = (int)$_POST['delete_task'];
 
     if ($currentRole !== 'admin') {
         $check = $conn->prepare("SELECT id FROM tasks WHERE id = ? AND assigned_to = ?");
@@ -73,10 +79,12 @@ if (isset($_GET['delete'])) {
 
     $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ?");
     $stmt->execute([$task_id]);
+
+    security_log("TASK DELETE by user_id={$currentUserId}, task_id={$task_id}");
+
     header("Location: dashboard.php");
     exit;
 }
-
 
 
 $editing_task = null;
@@ -98,20 +106,19 @@ if (isset($_GET['edit'])) {
     }
 }
 
-
 if ($currentRole === 'admin') {
     $tasks_stmt = $conn->query(
-        "SELECT t.*, u.full_name AS assigned_name 
-         FROM tasks t 
-         LEFT JOIN users u ON t.assigned_to = u.id 
+        "SELECT t.*, u.full_name AS assigned_name
+         FROM tasks t
+         LEFT JOIN users u ON t.assigned_to = u.id
          ORDER BY t.created_at DESC"
     );
     $tasks = $tasks_stmt->fetchAll(PDO::FETCH_ASSOC);
 } else {
     $tasks_stmt = $conn->prepare(
-        "SELECT t.*, u.full_name AS assigned_name 
-         FROM tasks t 
-         LEFT JOIN users u ON t.assigned_to = u.id 
+        "SELECT t.*, u.full_name AS assigned_name
+         FROM tasks t
+         LEFT JOIN users u ON t.assigned_to = u.id
          WHERE t.assigned_to = ?
          ORDER BY t.created_at DESC"
     );
@@ -119,11 +126,10 @@ if ($currentRole === 'admin') {
     $tasks = $tasks_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
-
 $users_stmt = $conn->query("SELECT id, full_name FROM users ORDER BY full_name");
 $users = $users_stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -192,7 +198,9 @@ $users = $users_stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="form-card">
         <h3><?php echo $editing_task ? 'Edit Task' : 'Add New Task'; ?></h3>
         <form method="POST" action="dashboard.php">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(get_csrf_token()) ?>">
             <?php if ($editing_task) { ?>
+                
                 <input type="hidden" name="task_id" value="<?php echo (int)$editing_task['id']; ?>">
             <?php } ?>
             <div class="form-group">
@@ -268,8 +276,14 @@ $users = $users_stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?php echo htmlspecialchars($t['created_at']); ?></td>
                     <td>
                         <a class="btn-edit" href="dashboard.php?edit=<?php echo (int)$t['id']; ?>">Edit</a>
-                        <a class="btn-delete" href="dashboard.php?delete=<?php echo (int)$t['id']; ?>"
-                           onclick="return confirm('Delete this task?');">Delete</a>
+                            
+
+    <form method="POST" action="dashboard.php" style="display:inline;"
+          onsubmit="return confirm('Delete this task?');">
+        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(get_csrf_token()) ?>">
+        <input type="hidden" name="delete_task" value="<?php echo (int)$t['id']; ?>">
+        <button type="submit" class="btn-delete">Delete</button>
+    </form>
                     </td>
                 </tr>
             <?php } ?>

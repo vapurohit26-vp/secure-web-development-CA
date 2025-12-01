@@ -8,11 +8,38 @@ $currentUserId = $_SESSION['user_id'];
 $currentRole   = $_SESSION['user_role'] ?? 'employee';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
         security_log("CSRF FAILURE on task POST by user_id={$currentUserId}");
         http_response_code(400);
         exit('Invalid request.');
     }
+
+
+    if (isset($_POST['delete_task'])) {
+        $task_id = (int)$_POST['delete_task'];
+
+
+        if ($currentRole !== 'admin') {
+            $check = $conn->prepare("SELECT id FROM tasks WHERE id = ? AND assigned_to = ?");
+            $check->execute([$task_id, $currentUserId]);
+            if ($check->rowCount() === 0) {
+                http_response_code(403);
+                exit('Unauthorized action.');
+            }
+        }
+
+        $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ?");
+        $stmt->execute([$task_id]);
+
+        security_log("TASK DELETE by user_id={$currentUserId}, task_id={$task_id}");
+
+        header("Location: dashboard.php");
+        exit;
+    }
+
+
+
     $title       = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $assigned_to = !empty($_POST['assigned_to']) ? (int)$_POST['assigned_to'] : null;
@@ -25,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!empty($_POST['task_id'])) {
-
+      
         $task_id = (int)$_POST['task_id'];
 
         if ($currentRole !== 'admin') {
@@ -44,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         security_log("TASK UPDATE by user_id={$currentUserId}, task_id={$task_id}, status='{$status}'");
     } else {
-      
+  
         $stmt = $conn->prepare(
             "INSERT INTO tasks (title, description, assigned_to, due_date, status) VALUES (?, ?, ?, ?, ?)"
         );
@@ -53,34 +80,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $newTaskId = $conn->lastInsertId();
         security_log("TASK CREATE by user_id={$currentUserId}, task_id={$newTaskId}, status='{$status}'");
     }
-
-    header("Location: dashboard.php");
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_task'])) {
-
-    if (!verify_csrf_token($_POST['csrf_token'] ?? null)) {
-        security_log("CSRF FAILURE on task DELETE by user_id={$currentUserId}");
-        http_response_code(400);
-        exit('Invalid request.');
-    }
-
-    $task_id = (int)$_POST['delete_task'];
-
-    if ($currentRole !== 'admin') {
-        $check = $conn->prepare("SELECT id FROM tasks WHERE id = ? AND assigned_to = ?");
-        $check->execute([$task_id, $currentUserId]);
-        if ($check->rowCount() === 0) {
-            http_response_code(403);
-            exit('Unauthorized action.');
-        }
-    }
-
-    $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ?");
-    $stmt->execute([$task_id]);
-
-    security_log("TASK DELETE by user_id={$currentUserId}, task_id={$task_id}");
 
     header("Location: dashboard.php");
     exit;

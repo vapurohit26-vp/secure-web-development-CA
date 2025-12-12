@@ -41,32 +41,32 @@ Both systems support:
 ```text
 task-manager/
 |
-+-- insecure/                      # Intentionally vulnerable implementation
-|   +-- add_user.php               # Plaintext passwords, SQL injection
-|   +-- auth_check.php             # Weak session validation
-|   +-- create_admin.php           # Hardcoded admin credentials
-|   +-- dashboard.php              # SQLi, IDOR, no CSRF, no sanitization
-|   +-- db_connection.php          # Weak PDO config
-|   +-- insecure_session.php       # No secure session flags
-|   +-- login.php                  # SQLi, plaintext passwords
-|   +-- logout.php                 # Basic session destroy
-|   +-- security_log.php           # Minimal logging
-|   +-- sidebar.php
+--- insecure/                      # Intentionally vulnerable implementation
+|   --- add_user.php               # Plaintext passwords, SQL injection
+|   --- auth_check.php             # Weak session validation
+|   --- create_admin.php           # Hardcoded admin credentials
+|   --- dashboard.php              # SQLi, IDOR, no CSRF, no sanitization
+|   --- db_connection.php          # Weak PDO config
+|   --- insecure_session.php       # No secure session flags
+|   --- login.php                  # SQLi, plaintext passwords
+|   --- logout.php                 # Basic session destroy
+|   --- security_log.php           # Minimal logging
+|   --- sidebar.php
 |
-+-- secure/                        # Security-hardened implementation
-|   +-- add_user.php               # CSRF, hashing, validation, RBAC
-|   +-- auth_check.php             # Secure session enforcement
-|   +-- create_admin.php           # Hashed admin password
-|   +-- csrf.php                   # CSRF token generation + validation
-|   +-- dashboard.php              # Prepared queries, IDOR protection
-|   +-- db_connection.php          # Secure PDO + UTF-8 handling
-|   +-- login.php                  # Hash verify, CSRF, session hardening
-|   +-- logout.php                 # Secure session destruction
-|   +-- secure_session.php         # Secure session config (HTTPOnly, SameSite)
-|   +-- security_log.php           # Logs with timestamp, IP, user agent
-|   +-- sidebar.php
+--- secure/                        # Security-hardened implementation
+|   --- add_user.php               # CSRF, hashing, validation, RBAC
+|   --- auth_check.php             # Secure session enforcement
+|   --- create_admin.php           # Hashed admin password
+|   --- csrf.php                   # CSRF token generation + validation
+|   --- dashboard.php              # Prepared queries, IDOR protection
+|   --- db_connection.php          # Secure PDO + UTF-8 handling
+|   --- login.php                  # Hash verify, CSRF, session hardening
+|   --- logout.php                 # Secure session destruction
+|   --- secure_session.php         # Secure session config (HTTPOnly, SameSite)
+|   --- security_log.php           # Logs with timestamp, IP, user agent
+|   --- sidebar.php
 |
-+-- database.sql
-+-- README.md
-```
+--- database.sql
+--- README.md
+
 

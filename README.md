@@ -12,12 +12,11 @@ Secure and Insecure Implementations
    - 4.4 CSRF Protection  
    - 4.5 IDOR & RBAC  
    - 4.6 XSS Protection  
-   - 4.7 Logging  
-5. Installation Instructions  
-6. Default Credentials  
-7. Testing Instructions  
-8. Educational Purpose  
-9. License  
+   - 4.7 Logging   
+5. Default Credentials  
+6. Testing Instructions  
+7. Educational Purpose  
+8. License  
 
 ---
 
@@ -117,8 +116,39 @@ Both systems support:
 
 ---
 
-## 5. Installation Instructions
 
-### Step 1: Import Database
+## 5. Default Credentials
+
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | admin | Myname@2010 |
+|Employee | Rahul | Rahul@123 |
+---
+
+## 6. Testing Instructions
+
+### Functional Tests
+- Login  
+- Logout  
+- Create, edit, delete tasks  
+- Admin user creation  
+
+### Security Tests
+- SQL Injection attempts  
+- CSRF attempts (token missing/invalid)  
+- IDOR (modifying task IDs)  
+- XSS injection  
+- Session timeout validation  
+
+---
+
+## 7. Educational Purpose
+The insecure version contains real-world vulnerabilities for teaching and demonstration purposes.  
+The secure version aligns with OWASP Top 10 guidelines, demonstrating proper remediation techniques.
+
+---
+
+## 8. License
+This project is for academic and research use only.
 
 

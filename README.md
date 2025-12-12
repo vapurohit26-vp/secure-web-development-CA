@@ -38,32 +38,4 @@ Both systems support:
 
 ## 2. Repository Structure
 
-task-manager/
-│
-├── insecure/
-│ ├── add_user.php
-│ ├── auth_check.php
-│ ├── create_admin.php
-│ ├── dashboard.php
-│ ├── db_connection.php
-│ ├── insecure_session.php
-│ ├── login.php
-│ ├── logout.php
-│ ├── security_log.php
-│ └── sidebar.php
-│
-├── secure/
-│ ├── add_user.php
-│ ├── auth_check.php
-│ ├── create_admin.php
-│ ├── csrf.php
-│ ├── dashboard.php
-│ ├── db_connection.php
-│ ├── login.php
-│ ├── logout.php
-│ ├── secure_session.php
-│ ├── security_log.php
-│ └── sidebar.php
-│
-├── database.sql
-└── README.md
+

@@ -56,12 +56,12 @@ task-manager/
 │   ├── add_user.php               # CSRF, hashing, validation, RBAC
 │   ├── auth_check.php             # Secure session enforcement
 │   ├── create_admin.php           # Hashed admin password
-│   ├── csrf.php                   # Token generation + validation
+│   ├── csrf.php                   # CSRF token generation + validation
 │   ├── dashboard.php              # Prepared queries, IDOR protection
 │   ├── db_connection.php          # Secure PDO + UTF-8 handling
 │   ├── login.php                  # Hash verify, CSRF, session hardening
 │   ├── logout.php                 # Secure session destruction
-│   ├── secure_session.php         # Strict secure session configuration
+│   ├── secure_session.php         # Secure session configuration (HTTPOnly, SameSite)
 │   ├── security_log.php           # Logs with timestamp, IP, user agent
 │   └── sidebar.php
 │

@@ -70,3 +70,86 @@ task-manager/
 --- README.md
 
 
+---
+
+## 3. Functional Features
+
+### User Management
+- Admin: Add users, manage all tasks
+- Employee: Manage own tasks only
+
+### Task Operations
+- Create tasks  
+- Edit tasks  
+- Delete tasks  
+- Assign tasks  
+- View dashboard list  
+
+### Logging
+- Login attempts  
+- Task modifications  
+- Security events  
+
+---
+
+## 4. Security Comparison
+
+### 4.1 Password Security
+| Insecure Version | Secure Version |
+|------------------|----------------|
+| Plaintext passwords | password_hash() used |
+| Manual comparison | password_verify() |
+
+---
+
+### 4.2 SQL Injection
+| Insecure | Secure |
+|---------|--------|
+| SQL queries use string interpolation | All queries use prepared statements |
+
+---
+
+### 4.3 Session Security
+| Insecure | Secure |
+|---------|--------|
+| session_start() only | HttpOnly, SameSite, Secure flags |
+| No timeout | Idle + absolute timeout |
+| Vulnerable to fixation | session_regenerate_id(true) |
+
+---
+
+### 4.4 CSRF Protection
+| Insecure | Secure |
+|---------|--------|
+| No CSRF protection | CSRF tokens implemented |
+
+---
+
+### 4.5 IDOR & RBAC
+| Insecure | Secure |
+|---------|--------|
+| Employees can modify any task | Ownership checks enforced |
+| Weak role handling | Proper RBAC middleware |
+
+---
+
+### 4.6 XSS Protection
+| Insecure | Secure |
+|---------|--------|
+| Raw output rendered | htmlspecialchars() everywhere |
+
+---
+
+### 4.7 Logging
+| Insecure | Secure |
+|---------|--------|
+| Minimal logging | Includes timestamp, IP, user agent |
+| Basic events only | Full security audit logging |
+
+---
+
+## 5. Installation Instructions
+
+### Step 1: Import Database
+
+

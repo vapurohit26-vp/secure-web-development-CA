@@ -246,13 +246,13 @@ Manually attempted:
 
 ### Secure Version
 
-- **Manual testing:**
+ **Manual testing:**
 - Same SQL injection payloads fail because queries use prepared statements.
 - XSS payloads display as text due to `htmlspecialchars`.
 - Cross-site POSTs without a valid CSRF token are rejected with 400 responses.
 - Employees cannot edit or delete tasks they do not own.
 
-- **Tool-assisted checks (suggested workflow):**
+ **Tool-assisted checks :**
 - Use **OWASP ZAP** or similar scanners for injection and XSS tests.
 - Confirm cookie flags (`HttpOnly`, `Secure`, `SameSite`) with browser dev tools.
 - Optionally run static analysis tools (e.g., PHPStan, Psalm) for code issues.

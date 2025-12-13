@@ -239,7 +239,7 @@ These changes follow OWASP secure coding guidance: parameterized queries, output
 
 ### Insecure Version 
 
-- Manually attempted:
+Manually attempted:
 - SQL injection via login and task parameters (succeeds, illustrating the vulnerability).
 - XSS via task titles and descriptions (renders unescaped).
 - CSRF by submitting forged forms from another site (actions succeed).

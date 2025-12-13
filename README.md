@@ -237,7 +237,7 @@ These changes follow OWASP secure coding guidance: parameterized queries, output
 
 ## Testing Process
 
-### Insecure Version (Baseline)
+### Insecure Version 
 
 - Manually attempted:
 - SQL injection via login and task parameters (succeeds, illustrating the vulnerability).

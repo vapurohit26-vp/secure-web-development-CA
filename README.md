@@ -164,8 +164,11 @@ FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
 Edit `db_connection.php` in each folder :
 
 $host = "localhost";
+
 $db_name = "task_management_db";
+
 $username = "root";
+
 $password = "";
 
 
@@ -228,7 +231,7 @@ Use only on a local, isolated environment for demonstration.
 | Logging            | Simple textual logs                                  | Detailed logs (IP, UA, timestamp, action)                      |
 | Input Validation   | Minimal or none                                      | Trimming, validation, password complexity rules                |
 
-These changes follow OWASP secure coding guidance: parameterized queries, output encoding, CSRF tokens, and hardened session management.[web:3][web:6][web:8]
+These changes follow OWASP secure coding guidance: parameterized queries, output encoding, CSRF tokens, and hardened session management.
 
 ---
 

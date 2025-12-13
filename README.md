@@ -1,107 +1,272 @@
 # Secure Task Manager Web Application  
-A Security-Focused Redesign of an Insecure PHP Task Management System
+
+
+## Project Overview
+
+This project is a PHP-based Task Manager web application implemented in **two versions**:  
+- an **insecure** version demonstrating common web vulnerabilities, and  
+- a **secure** version showing how to fix them using modern best practices.[web:3][web:6]
+
+Both versions provide basic task management (users, authentication, task CRUD), but the primary purpose of the repository is to **teach and demonstrate secure coding in PHP** (SQL injection prevention, secure sessions, CSRF protection, XSS mitigation, and proper access control).[web:3][web:7]
 
 ---
 
-## 📑 Table of Contents
-1. [Project Overview](#project-overview)  
-2. [Features and Security Objectives](#features-and-security-objectives)  
-3. [Project Structure](#project-structure)  
-4. [Setup & Installation Instructions](#setup--installation-instructions)  
-5. [Usage Guidelines](#usage-guidelines)  
-6. [Security Improvements](#security-improvements)  
-7. [Testing Process](#testing-process)  
-8. [Contributions & References](#contributions--references)
+## Features and Security Objectives
 
----
+### Core Application Features
 
-## 📌 Project Overview
-
-The **Secure Task Manager Web Application** is a full PHP-based system that demonstrates how an insecure application can be transformed into a secure, industry-standard web application.
-
-The project was developed in **two phases**:
-
-### 🔴 **Insecure Implementation**
-Includes deliberate vulnerabilities:
-- Plaintext passwords  
-- SQL injection  
-- Broken authentication  
-- No CSRF protection  
-- No session hardening  
-- IDOR vulnerabilities  
-- Missing validation and sanitisation  
-
-### 🟢 **Secure Implementation**
-Refactored using OWASP-aligned best practices:
-- Password hashing (bcrypt)  
-- Prepared SQL statements  
-- Secure session configuration (HttpOnly, SameSite, regeneration)  
-- Role-Based Access Control  
-- CSRF protection  
-- Input validation  
-- XSS protection  
-- Detailed security logging  
-
-The web application supports two roles:
-
-- **Admin** – Add users, edit/delete/view all tasks  
-- **Employee** – Create, update, and delete only their own tasks  
-
-This repository serves as a **teaching and demonstration tool** showcasing secure vs insecure software engineering.
-
----
-
-## ✨ Features and Security Objectives
-
-### Functional Features
-- User login and authentication  
-- Admin user creation  
-- Create, update, and delete tasks  
-- Assign tasks to other users (admin only)  
-- Employee access to their own tasks  
-- Activity logging  
+- User authentication (login/logout)
+- Admin user creation and user management
+- Task creation, editing, assignment, and deletion
+- Role-based access:
+  - **Admin:** manage users and all tasks
+  - **Employee:** manage only own tasks
+- Security and activity logging for important actions
 
 ### Security Objectives
-- Prevent SQL Injection through parameterised queries  
-- Store passwords securely using bcrypt  
-- Mitigate CSRF attacks using unique tokens  
-- Enforce strict session security policy  
-- Prevent IDOR by checking ownership  
-- Prevent XSS using `htmlspecialchars()`  
-- Apply principle of least privilege (RBAC)  
-- Maintain audit trail for accountability  
+
+- Prevent **SQL Injection** by replacing string-concatenated queries with prepared statements.[web:3][web:6]
+- Protect **passwords** using hashing (`password_hash`, `password_verify`), avoiding plaintext storage.[web:3]
+- Enforce **CSRF protection** using server-side tokens for all state-changing POST requests.[web:2][web:8]
+- Harden **sessions** with secure cookie flags and idle/session lifetime limits.[web:1][web:7][web:10]
+- Mitigate **XSS** via consistent output escaping (`htmlspecialchars`).[web:3][web:7]
+- Apply **least privilege** and **role-based authorization** to sensitive operations (user management, task ownership).[web:3][web:6]
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
-```text
-task-manager/
-|
-+-- insecure/                      # Intentionally vulnerable implementation
-|   +-- add_user.php               # SQLi, plaintext passwords
-|   +-- auth_check.php             # Weak session check
-|   +-- create_admin.php           # Hardcoded admin
-|   +-- dashboard.php              # SQLi, IDOR, no CSRF
-|   +-- db_connection.php          # Weak PDO config
-|   +-- insecure_session.php       # No security flags
-|   +-- login.php                  # SQLi login, plaintext password check
-|   +-- logout.php                 # Basic session destroy
-|   +-- security_log.php           # Minimal log entries
-|   +-- sidebar.php
-|
-+-- secure/                        # Hardened, secure implementation
-|   +-- add_user.php               # CSRF, hashing, validation, RBAC
-|   +-- auth_check.php             # Secure session validation
-|   +-- create_admin.php           # Hashed admin password
-|   +-- csrf.php                   # CSRF token logic
-|   +-- dashboard.php              # Prepared statements + IDOR protection
-|   +-- db_connection.php          # Secure PDO config
-|   +-- login.php                  # Hash verify, log failures, regenerate session
-|   +-- logout.php                 # Secure session destruction
-|   +-- secure_session.php         # Strict session settings
-|   +-- security_log.php           # Detailed logs: IP, UA, timestamp
-|   +-- sidebar.php
-|
-+-- database.sql                   # Database schema
-+-- README.md                      # Documentation
+At the top level, the repository contains two main folders:
+project-root/
+├── insecure/ # Original, vulnerable implementation
+└── secure/ # Refactored, hardened implementation
+
+
+### `insecure/` folder
+
+Contains the original vulnerable codebase:
+
+- `add_user.php`  
+  - Adds users with **plaintext passwords** and **SQL queries built via string concatenation** (vulnerable to SQL injection).
+- `auth_check.php`  
+  - Simple session check using `insecure_session.php`, no session hardening.
+- `create_admin.php`  
+  - Inserts an admin with a hard-coded plaintext password.
+- `dashboard.php`  
+  - Performs task CRUD with unsanitized GET/POST parameters directly in SQL.
+- `db_connection.php`  
+  - Basic PDO connection, no further security.
+- `insecure_session.php`  
+  - Only `session_start()`, no cookie flags or timeout handling.
+- `login.php`  
+  - Authenticates with plaintext password comparison and vulnerable SQL.
+- `logout.php`  
+  - Destroys session but without secure cookie cleanup.
+- `security_log.php`  
+  - Logs basic messages to `logs/security.log` (less contextual data).
+- `sidebar.php`  
+  - Echoes session values without HTML escaping (XSS risk).
+
+This folder is useful for learning how common mistakes lead to SQL injection, CSRF, XSS, and weak session handling.[web:3][web:7]
+
+### `secure/` folder
+
+Contains the refactored, secure implementation:
+
+- `add_user.php`  
+  - Admin-only user creation.  
+  - Validates role input, enforces password complexity, hashes passwords, uses prepared statements, includes CSRF checks, and logs user creation events.[web:2][web:3][web:7]
+- `auth_check.php`  
+  - Uses `secure_session.php` and enforces authenticated access with clean redirects.
+- `create_admin.php`  
+  - Creates a default admin using `password_hash()` and prepared statements.
+- `csrf.php`  
+  - Generates strong random CSRF tokens with `random_bytes` and verifies them against session data.[web:2][web:7]
+- `dashboard.php`  
+  - Uses prepared statements for all task operations.  
+  - Verifies CSRF token for every POST.  
+  - Enforces per-role rules (employees can only manage their own tasks).  
+  - Escapes all dynamic output to prevent XSS.
+- `db_connection.php`  
+  - PDO connection with error mode set to exceptions and UTF‑8 charset.
+- `login.php`  
+  - Verifies CSRF token, uses prepared statements, and checks hashed passwords using `password_verify`.  
+  - Regenerates the session ID on successful login to avoid fixation.[web:1][web:7]
+- `logout.php`  
+  - Properly clears `$_SESSION`, deletes the session cookie with secure parameters, and calls `session_destroy()`.
+- `secure_section.php` (referred to as `secure_session.php` in includes)  
+  - Configures session cookie attributes (`HttpOnly`, `SameSite`, `Secure` when HTTPS) before `session_start()`.  
+  - Implements inactivity timeout and maximum session lifetime, forcing re-login when exceeded.[web:1][web:4][web:7]
+- `security_log.php`  
+  - Logs security events with timestamp, IP address, and User-Agent for auditing.[web:6]
+- `sidebar.php`  
+  - Prints user data using `htmlspecialchars()` to prevent XSS.
+
+#### Logs
+
+Both versions write logs under:
+
+logs/
+└── security.log # Security-related events (more detailed in secure version)
+
+
+---
+
+## Setup and Installation
+
+The steps are the same for both versions, but **only the `secure/` version should be used in real environments**.
+
+### 1. Requirements
+
+- PHP 8.x (recommended)
+- MySQL/MariaDB
+- Web server (Apache, Nginx, etc.)
+- PHP extensions: `pdo_mysql`, `openssl` (for secure random CSRF tokens)[web:2]
+
+### 2. Database Creation
+
+CREATE DATABASE task_management_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+
+### 3. Tables
+
+Use the same schema for both `insecure` and `secure` apps:
+
+CREATE TABLE users (
+id INT AUTO_INCREMENT PRIMARY KEY,
+full_name VARCHAR(100) NOT NULL,
+username VARCHAR(50) NOT NULL UNIQUE,
+password VARCHAR(255) NOT NULL,
+role ENUM('admin','employee') DEFAULT 'employee',
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE tasks (
+id INT AUTO_INCREMENT PRIMARY KEY,
+title VARCHAR(255) NOT NULL,
+description TEXT,
+assigned_to INT,
+due_date DATE,
+status ENUM('pending','in_progress','completed') DEFAULT 'pending',
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE SET NULL
+);
+
+
+
+### 4. Configure Database Credentials
+
+Edit `db_connection.php` in each folder :
+
+$host = "localhost";
+$db_name = "task_management_db";
+$username = "root";
+$password = "";
+
+
+### 5. Install and Run
+
+- **Insecure version (for study only):**
+
+  Place the `insecure/` folder in your web root and open:
+
+http://localhost/insecure/create_admin.php
+http://localhost/insecure/login.php
+
+
+- **Secure version :**
+
+Place the `secure/` folder in your web root and open:
+
+http://localhost/secure/create_admin.php
+http://localhost/secure/login.php
+
+
+The admin user is created by `create_admin.php` (same username/password in both versions, but stored differently: plaintext vs hash).
+
+---
+
+## Usage Guidelines
+
+### Insecure Version
+
+- Login at `/insecure/login.php` using the created admin credentials.
+- Use the dashboard to create, update, and delete tasks.
+- Use `add_user.php` to add new users.
+- This version is intentionally vulnerable (no CSRF, no hashing, direct SQL from inputs).
+
+Use only on a local, isolated environment for demonstration.
+
+### Secure Version
+
+- Login at `/secure/login.php`.
+- Admins can:
+- Add new users via `add_user.php` (password rules enforced, roles restricted).
+- Manage all tasks on `dashboard.php`.
+- Employees can:
+- Create and manage only their own tasks.
+- All POST forms include a CSRF hidden field; a missing or invalid token results in a 400 response and is logged.
+- Sessions expire after inactivity or lifetime limits, requiring re-authentication.[web:1][web:7]
+
+---
+
+## Security Improvements (Insecure → Secure)
+
+| Aspect             | Insecure Folder                                      | Secure Folder                                                  |
+|--------------------|------------------------------------------------------|----------------------------------------------------------------|
+| SQL Queries        | String concatenation with user input (injectable)    | Prepared statements with bound parameters                      |
+| Password Storage   | Plaintext in DB                                      | Hashed passwords (`password_hash`, `password_verify`)          |
+| CSRF Protection    | None                                                 | CSRF tokens for all POST actions (`csrf.php`)                  |
+| Session Management | Basic `session_start()` only                         | HttpOnly, SameSite, optional Secure flag, timeouts, regeneration[web:1][web:7][web:10] |
+| XSS Mitigation     | Raw echo of user data                                | `htmlspecialchars` on all user-controlled output               |
+| Authorization      | Weak role checks, insecure task ownership handling   | Enforced role checks and ownership verification                |
+| Logging            | Simple textual logs                                  | Detailed logs (IP, UA, timestamp, action)                      |
+| Input Validation   | Minimal or none                                      | Trimming, validation, password complexity rules                |
+
+These changes follow OWASP secure coding guidance: parameterized queries, output encoding, CSRF tokens, and hardened session management.[web:3][web:6][web:8]
+
+---
+
+## Testing Process
+
+### Insecure Version (Baseline)
+
+- Manually attempted:
+- SQL injection via login and task parameters (succeeds, illustrating the vulnerability).
+- XSS via task titles and descriptions (renders unescaped).
+- CSRF by submitting forged forms from another site (actions succeed).
+
+### Secure Version
+
+- **Manual testing:**
+- Same SQL injection payloads fail because queries use prepared statements.
+- XSS payloads display as text due to `htmlspecialchars`.
+- Cross-site POSTs without a valid CSRF token are rejected with 400 responses.
+- Employees cannot edit or delete tasks they do not own.
+
+- **Tool-assisted checks (suggested workflow):**
+- Use **OWASP ZAP** or similar scanners for injection and XSS tests.[web:3]
+- Confirm cookie flags (`HttpOnly`, `Secure`, `SameSite`) with browser dev tools.[web:1][web:7][web:10]
+- Optionally run static analysis tools (e.g., PHPStan, Psalm) for code issues.[web:3][web:6]
+
+Key findings: the secure version addresses the main OWASP Top 10 issues that were present in the insecure version (injection, broken auth/session, XSS, CSRF).[web:3][web:6][web:7]
+
+---
+
+## Contributions and References
+
+### Original Source and Intent
+
+- The **`insecure/`** codebase represents a typical beginner-level PHP application with common security mistakes.
+- The **`secure/`** codebase is a refactor intended for **security education and comparison**, not as a production-ready framework.
+
+### References 
+
+- OWASP Secure Coding Practices & Top 10 guidance on injection, XSS, and broken authentication.[web:3][web:6]
+- PHP security best practices for sessions, cookies, and CSRF.[web:1][web:2][web:7][web:10]
+- OWASP CSRF Prevention Cheat Sheet for token-based protections.[web:8]
+
+
+
+---

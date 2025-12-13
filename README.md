@@ -268,16 +268,6 @@ Key findings: the secure version addresses the main OWASP Top 10 issues that wer
 - The **`insecure/`** codebase represents a typical beginner-level PHP application with common security mistakes.
 - The **`secure/`** codebase is a refactor intended for **security education and comparison**, not as a production-ready framework.
 
-
-**Recommended Tools:**
-- OWASP ZAP / Burp Suite for automated scanning
-- Browser DevTools for cookie flag verification
-- PHPStan for static analysis
-
----
-
-## 🤝 Contributions and References
-
 ### Key Security References
 
 **Core Standards:**

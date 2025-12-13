@@ -5,9 +5,9 @@
 
 This project is a PHP-based Task Manager web application implemented in **two versions**:  
 - an **insecure** version demonstrating common web vulnerabilities, and  
-- a **secure** version showing how to fix them using modern best practices.[web:3][web:6]
+- a **secure** version showing how to fix them using modern best practices.
 
-Both versions provide basic task management (users, authentication, task CRUD), but the primary purpose of the repository is to **teach and demonstrate secure coding in PHP** (SQL injection prevention, secure sessions, CSRF protection, XSS mitigation, and proper access control).[web:3][web:7]
+Both versions provide basic task management (users, authentication, task CRUD), but the primary purpose of the repository is to **teach and demonstrate secure coding in PHP** (SQL injection prevention, secure sessions, CSRF protection, XSS mitigation, and proper access control).
 
 ---
 
@@ -25,12 +25,12 @@ Both versions provide basic task management (users, authentication, task CRUD), 
 
 ### Security Objectives
 
-- Prevent **SQL Injection** by replacing string-concatenated queries with prepared statements.[web:3][web:6]
-- Protect **passwords** using hashing (`password_hash`, `password_verify`), avoiding plaintext storage.[web:3]
-- Enforce **CSRF protection** using server-side tokens for all state-changing POST requests.[web:2][web:8]
-- Harden **sessions** with secure cookie flags and idle/session lifetime limits.[web:1][web:7][web:10]
-- Mitigate **XSS** via consistent output escaping (`htmlspecialchars`).[web:3][web:7]
-- Apply **least privilege** and **role-based authorization** to sensitive operations (user management, task ownership).[web:3][web:6]
+- Prevent **SQL Injection** by replacing string-concatenated queries with prepared statements.
+- Protect **passwords** using hashing (`password_hash`, `password_verify`), avoiding plaintext storage.
+- Enforce **CSRF protection** using server-side tokens for all state-changing POST requests.
+- Harden **sessions** with secure cookie flags and idle/session lifetime limits.
+- Mitigate **XSS** via consistent output escaping (`htmlspecialchars`).
+- Apply **least privilege** and **role-based authorization** to sensitive operations (user management, task ownership).
 
 ---
 
@@ -67,7 +67,7 @@ Contains the original vulnerable codebase:
 - `sidebar.php`  
   - Echoes session values without HTML escaping (XSS risk).
 
-This folder is useful for learning how common mistakes lead to SQL injection, CSRF, XSS, and weak session handling.[web:3][web:7]
+This folder is useful for learning how common mistakes lead to SQL injection, CSRF, XSS, and weak session handling.
 
 ### `secure/` folder
 
@@ -75,13 +75,13 @@ Contains the refactored, secure implementation:
 
 - `add_user.php`  
   - Admin-only user creation.  
-  - Validates role input, enforces password complexity, hashes passwords, uses prepared statements, includes CSRF checks, and logs user creation events.[web:2][web:3][web:7]
+  - Validates role input, enforces password complexity, hashes passwords, uses prepared statements, includes CSRF checks, and logs user creation events.
 - `auth_check.php`  
   - Uses `secure_session.php` and enforces authenticated access with clean redirects.
 - `create_admin.php`  
   - Creates a default admin using `password_hash()` and prepared statements.
 - `csrf.php`  
-  - Generates strong random CSRF tokens with `random_bytes` and verifies them against session data.[web:2][web:7]
+  - Generates strong random CSRF tokens with `random_bytes` and verifies them against session data.
 - `dashboard.php`  
   - Uses prepared statements for all task operations.  
   - Verifies CSRF token for every POST.  
@@ -91,12 +91,12 @@ Contains the refactored, secure implementation:
   - PDO connection with error mode set to exceptions and UTF‑8 charset.
 - `login.php`  
   - Verifies CSRF token, uses prepared statements, and checks hashed passwords using `password_verify`.  
-  - Regenerates the session ID on successful login to avoid fixation.[web:1][web:7]
+  - Regenerates the session ID on successful login to avoid fixation.
 - `logout.php`  
   - Properly clears `$_SESSION`, deletes the session cookie with secure parameters, and calls `session_destroy()`.
 - `secure_section.php` (referred to as `secure_session.php` in includes)  
   - Configures session cookie attributes (`HttpOnly`, `SameSite`, `Secure` when HTTPS) before `session_start()`.  
-  - Implements inactivity timeout and maximum session lifetime, forcing re-login when exceeded.[web:1][web:4][web:7]
+  - Implements inactivity timeout and maximum session lifetime, forcing re-login when exceeded.
 - `security_log.php`  
   - Logs security events with timestamp, IP address, and User-Agent for auditing.[web:6]
 - `sidebar.php`  
@@ -121,7 +121,7 @@ The steps are the same for both versions, but **only the `secure/` version shoul
 - PHP 8.x (recommended)
 - MySQL/MariaDB
 - Web server (Apache, Nginx, etc.)
-- PHP extensions: `pdo_mysql`, `openssl` (for secure random CSRF tokens)[web:2]
+- PHP extensions: `pdo_mysql`, `openssl` (for secure random CSRF tokens)
 
 ### 2. Database Creation
 
@@ -207,7 +207,7 @@ Use only on a local, isolated environment for demonstration.
 - Employees can:
 - Create and manage only their own tasks.
 - All POST forms include a CSRF hidden field; a missing or invalid token results in a 400 response and is logged.
-- Sessions expire after inactivity or lifetime limits, requiring re-authentication.[web:1][web:7]
+- Sessions expire after inactivity or lifetime limits, requiring re-authentication.
 
 ---
 
@@ -246,11 +246,11 @@ These changes follow OWASP secure coding guidance: parameterized queries, output
 - Employees cannot edit or delete tasks they do not own.
 
 - **Tool-assisted checks (suggested workflow):**
-- Use **OWASP ZAP** or similar scanners for injection and XSS tests.[web:3]
-- Confirm cookie flags (`HttpOnly`, `Secure`, `SameSite`) with browser dev tools.[web:1][web:7][web:10]
-- Optionally run static analysis tools (e.g., PHPStan, Psalm) for code issues.[web:3][web:6]
+- Use **OWASP ZAP** or similar scanners for injection and XSS tests.
+- Confirm cookie flags (`HttpOnly`, `Secure`, `SameSite`) with browser dev tools.
+- Optionally run static analysis tools (e.g., PHPStan, Psalm) for code issues.
 
-Key findings: the secure version addresses the main OWASP Top 10 issues that were present in the insecure version (injection, broken auth/session, XSS, CSRF).[web:3][web:6][web:7]
+Key findings: the secure version addresses the main OWASP Top 10 issues that were present in the insecure version (injection, broken auth/session, XSS, CSRF).
 
 ---
 
@@ -261,11 +261,45 @@ Key findings: the secure version addresses the main OWASP Top 10 issues that wer
 - The **`insecure/`** codebase represents a typical beginner-level PHP application with common security mistakes.
 - The **`secure/`** codebase is a refactor intended for **security education and comparison**, not as a production-ready framework.
 
-### References 
 
-- OWASP Secure Coding Practices & Top 10 guidance on injection, XSS, and broken authentication.[web:3][web:6]
-- PHP security best practices for sessions, cookies, and CSRF.[web:1][web:2][web:7][web:10]
-- OWASP CSRF Prevention Cheat Sheet for token-based protections.[web:8]
+**Recommended Tools:**
+- OWASP ZAP / Burp Suite for automated scanning
+- Browser DevTools for cookie flag verification
+- PHPStan for static analysis
+
+---
+
+## 🤝 Contributions and References
+
+### Key Security References
+
+**Core Standards:**
+- OWASP (2021) *OWASP Top Ten Web Application Security Risks*
+- OWASP (2020a) *Cross-Site Request Forgery Prevention Cheat Sheet*
+- OWASP (2020b) *Session Management Cheat Sheet*
+
+**Technical Foundation:**
+- Barth, A. (2011) *HTTP State Management Mechanism* (RFC 6265)
+- Barth, A., Jackson, C. & Mitchell, J.C. (2008) *Robust defenses for CSRF*
+- PHP Group (2023) *password_hash() Documentation*
+
+**Academic Research:**
+- Bonneau, J. (2012) *Password guessing analysis* (70M passwords)
+- Halfond, W.G. et al. (2006) *SQL injection classification*
+- Ferraiolo, D. et al. (2001) *NIST RBAC standard*
+- Gharib, M. & Jebril, N. (2014) *Secure session management*
+
+**Additional Reading:**
+- Dahm, M. (2020) *PHP Security Best Practices*
+- Howard, M. & Lipner, S. (2006) *Security Development Lifecycle*
+- McGraw, G. (2006) *Software security principles*
+
+### License
+Educational use only.
+
+---
+
+
 
 
 

@@ -38,7 +38,9 @@ Both versions provide basic task management (users, authentication, task CRUD), 
 
 At the top level, the repository contains two main folders:
 project-root/
+
 ├── insecure/ # Original, vulnerable implementation
+
 └── secure/ # Refactored, hardened implementation
 
 
@@ -107,6 +109,8 @@ Contains the refactored, secure implementation:
 Both versions write logs under:
 
 logs/
+
+
 └── security.log # Security-related events (more detailed in secure version)
 
 

@@ -111,7 +111,7 @@ Both versions write logs under:
 logs/
 
 
-└── security.log # Security-related events (more detailed in secure version)
+└── security.log 
 
 
 ---
